@@ -62,12 +62,14 @@ export default defineContentScript({
     // -----------------------------------------------------------------------
 
     document.addEventListener('keydown', (e) => {
-      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'S') {
+      const key = e.key.toUpperCase();
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && key === 'S') {
         e.preventDefault();
+        e.stopPropagation();
         if (panelRoot) {
           closePanel();
         } else {
-          chrome.runtime.sendMessage({ type: 'TOGGLE_PANEL' });
+          openPanel('sidepanel.html');
         }
       }
     });
