@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Arc SidePanel Polyfill</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      width: 320px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #fff;
+      color: #1a1a1a;
+      padding: 16px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: #1c1c1e; color: #e5e5e7; }
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .header-text h1 {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .header-text p {
+      font-size: 11px;
+      color: #888;
+      margin-top: 1px;
+    }
+
+    .status-card {
+      border: 1px solid #e5e5e5;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .status-card { border-color: #333; }
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 13px;
+    }
+
+    .status-row + .status-row {
+      margin-top: 8px;
+      padding-top: 8px;
+      border-top: 1px solid #f0f0f0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .status-row + .status-row { border-top-color: #333; }
+    }
+
+    .status-label {
+      color: #666;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .status-label { color: #999; }
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .badge-active {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    .badge-dormant {
+      background: #f3f4f6;
+      color: #6b7280;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .badge-active { background: #14532d; color: #86efac; }
+      .badge-dormant { background: #374151; color: #9ca3af; }
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    .badge-active .badge-dot { background: #22c55e; }
+    .badge-dormant .badge-dot { background: #9ca3af; }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      margin-bottom: 8px;
+    }
+
+    .btn:hover { opacity: 0.85; }
+    .btn:active { opacity: 0.7; }
+
+    .btn-primary {
+      background: #6366f1;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #f3f4f6;
+      color: #374151;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .btn-secondary { background: #374151; color: #e5e7eb; }
+    }
+
+    .shortcut-hint {
+      text-align: center;
+      font-size: 11px;
+      color: #999;
+      margin-top: 4px;
+    }
+
+    .shortcut-hint kbd {
+      background: #f3f4f6;
+      border: 1px solid #e5e5e5;
+      border-radius: 3px;
+      padding: 1px 4px;
+      font-family: inherit;
+      font-size: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .shortcut-hint kbd {
+        background: #374151;
+        border-color: #555;
+      }
+    }
+
+    .footer {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #f0f0f0;
+      text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .footer { border-top-color: #333; }
+    }
+
+    .footer a {
+      font-size: 11px;
+      color: #6366f1;
+      text-decoration: none;
+    }
+
+    .footer a:hover { text-decoration: underline; }
+
+    #loading {
+      text-align: center;
+      padding: 20px;
+      color: #888;
+      font-size: 13px;
+    }
+
+    #content { display: none; }
+  </style>
+</head>
+<body>
+  <div id="loading">Checking polyfill status...</div>
+
+  <div id="content">
+    <div class="header">
+      <div class="logo">SP</div>
+      <div class="header-text">
+        <h1>SidePanel Polyfill</h1>
+        <p id="browser-name">Detecting browser...</p>
+      </div>
+    </div>
+
+    <div class="status-card">
+      <div class="status-row">
+        <span class="status-label">Polyfill</span>
+        <span id="polyfill-badge" class="badge badge-dormant">
+          <span class="badge-dot"></span>
+          <span id="polyfill-status">Checking...</span>
+        </span>
+      </div>
+      <div class="status-row">
+        <span class="status-label">Native API</span>
+        <span id="native-status" style="font-size: 13px;">—</span>
+      </div>
+    </div>
+
+    <button id="toggle-btn" class="btn btn-primary">Toggle Side Panel</button>
+
+    <p class="shortcut-hint" id="shortcut-hint">
+      or press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>
+    </p>
+
+    <div class="footer">
+      <a href="https://github.com/AswanthManoj/arc-sidepanel-polyfill" target="_blank">
+        GitHub → Star this project
+      </a>
+    </div>
+  </div>
+
+  <script type="module" src="./main.ts"></script>
+</body>
+</html>
