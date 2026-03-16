@@ -22,5 +22,11 @@ export default defineConfig({
         description: 'Toggle the side panel',
       },
     },
+    web_accessible_resources: [
+      {
+        resources: ['sidepanel.html'],
+        matches: ['<all_urls>'],
+      },
+    ],
   },
 });
